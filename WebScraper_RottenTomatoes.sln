@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33530.505
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebScraper_RottenTomatoes", "WebScraper_RottenTomatoes.csproj", "{CDCF8118-744D-48F9-A5E8-33A2F420BFC1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CDCF8118-744D-48F9-A5E8-33A2F420BFC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDCF8118-744D-48F9-A5E8-33A2F420BFC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDCF8118-744D-48F9-A5E8-33A2F420BFC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDCF8118-744D-48F9-A5E8-33A2F420BFC1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BFF5AD6D-9734-4DD5-A58C-F1BBF23DE422}
+	EndGlobalSection
+EndGlobal
