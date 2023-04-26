@@ -12,8 +12,9 @@ class WebScraper
 {
     static async Task Main(string[] args)
     {
-        await getMovieInfo();
-        await getSeriesInfo();
+        //await getMovieInfo();
+        //await getSeriesInfo();
+        await getTop10();
     }
     static async Task getMovieInfo()
     {
@@ -217,5 +218,36 @@ class WebScraper
         Console.WriteLine("Genero: " + genre);
         //Faltan los comentarios de la critica y audiencia
 
+    }
+    static async Task getTop10()
+    {
+        var url = "https://www.rottentomatoes.com";
+        var httpClient = new HttpClient();
+        var html = await httpClient.GetStringAsync(url);
+
+
+        var htmlDocument = new HtmlDocument();
+        htmlDocument.LoadHtml(html);
+
+        Console.WriteLine("Top peliculas de la semana:\n");
+        for (int i = 1; i <= 10; i++)
+        {
+            //Iteramos sobre cada nodo que cumple con la condicion de ese value de class
+            //Solamente iteraremos 10 veces debido a que en estos 10 primeros nodos está el top de peliculas
+            var topValue = htmlDocument.DocumentNode.SelectSingleNode($"(//span[@class='dynamic-text-list__item-title clamp clamp-1'])[{i}]");
+            var topMovie = topValue?.InnerText.Trim();
+            Console.WriteLine(topMovie);
+        }
+        Console.WriteLine("");
+
+        Console.WriteLine("Top series de la semana:\n");
+        for (int i = 11; i <= 20; i++)
+        {
+            //Iteramos sobre cada nodo que cumple con la condicion de ese value de class
+            //Solamente iteraremos 10 veces debido a que en estos 10 primeros nodos está el top de peliculas
+            var serieValue = htmlDocument.DocumentNode.SelectSingleNode($"(//span[@class='dynamic-text-list__item-title clamp clamp-1'])[{i}]");
+            var topSerie = serieValue?.InnerText.Trim();
+            Console.WriteLine(topSerie);
+        }
     }
 }
