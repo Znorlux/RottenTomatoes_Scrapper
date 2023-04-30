@@ -7,13 +7,14 @@ using System.Text;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Reflection.Metadata;
+using System.Text.RegularExpressions;
 
 class WebScraper
 {
     static async Task Main(string[] args)
     {
-        //await getMovieInfo();
-        //await getSeriesInfo();
+        await getMovieInfo();
+        await getSeriesInfo();
         await getTop10();
     }
     static async Task getMovieInfo()
@@ -79,12 +80,15 @@ class WebScraper
         Console.WriteLine("Clasificacion:\n" + rating);
         Console.WriteLine("");
 
-        //var genreLabel = infoList.SelectSingleNode(".//b[contains(@data-qa, 'movie-info-item-label') and text()='Genre:']");
-        //var genreValue = genreLabel?.ParentNode?.SelectSingleNode(".//span[contains(@data-qa, 'movie-info-item-value')]");
-        //var genre = genreValue?.InnerText.Trim();
+        var genreLabel = infoList.SelectSingleNode(".//b[contains(@data-qa, 'movie-info-item-label') and text()='Genre:']");
+        var genreValue = genreLabel?.ParentNode?.SelectSingleNode(".//span[contains(@data-qa, 'movie-info-item-value')]");
+        var genre = genreValue?.InnerText.Trim();
         //genre = genre?.Replace(",", ", ");
-        //Console.WriteLine("Genero:\n" + genre);
-        //Console.WriteLine("");
+        genre = Regex.Replace(genre, @"\s+", " ");
+        genre = genre?.Replace(",", ", ");
+        genre = WebUtility.HtmlDecode(genre);
+        Console.WriteLine("Generos:\n" + genre);
+        Console.WriteLine("");
 
         var languageLabel = infoList.SelectSingleNode(".//b[contains(@data-qa, 'movie-info-item-label') and text()='Original Language:']");
         var languageValue = languageLabel?.ParentNode?.SelectSingleNode(".//span[contains(@data-qa, 'movie-info-item-value')]");
@@ -132,7 +136,18 @@ class WebScraper
             }
         }
         Console.WriteLine("");
-        //Faltan los comentarios de la critica y de la audiencia
+        var criticReview = htmlDocument.DocumentNode.SelectNodes("//review-speech-balloon[contains(@data-qa, 'critic-review')]");
+
+        if (criticReview != null)
+        {
+            Console.WriteLine("Comentarios de la critica:");
+
+            for (int i = 0; i < 3 && i < criticReview.Count; i++)
+            {
+                var reviewQuote = criticReview[i]?.GetAttributeValue("reviewquote", "");
+                Console.WriteLine("- " + reviewQuote.Trim()+"\n");
+            }
+        }
     }
 
     static async Task getSeriesInfo()
@@ -140,7 +155,7 @@ class WebScraper
         var url = "https://www.rottentomatoes.com/tv/the_mandalorian";
         var httpClient = new HttpClient();
         var html = await httpClient.GetStringAsync(url);
-        //En html está guardado el codigo completo tras la petición
+
 
         var htmlDocument = new HtmlDocument();
         htmlDocument.LoadHtml(html);
@@ -216,7 +231,7 @@ class WebScraper
         var genreValue = htmlDocument.DocumentNode.SelectSingleNode("//li[contains(., 'Genre: ')]");
         var genre = genreValue?.InnerText.Replace("Genre: ", "").Trim();
         Console.WriteLine("Genero: " + genre);
-        //Faltan los comentarios de la critica y audiencia
+        
 
     }
     static async Task getTop10()
@@ -225,29 +240,38 @@ class WebScraper
         var httpClient = new HttpClient();
         var html = await httpClient.GetStringAsync(url);
 
-
         var htmlDocument = new HtmlDocument();
         htmlDocument.LoadHtml(html);
 
-        Console.WriteLine("Top peliculas de la semana:\n");
+        Console.WriteLine("\nTop peliculas de la semana:\n");
         for (int i = 1; i <= 10; i++)
         {
             //Iteramos sobre cada nodo que cumple con la condicion de ese value de class
             //Solamente iteraremos 10 veces debido a que en estos 10 primeros nodos está el top de peliculas
             var topValue = htmlDocument.DocumentNode.SelectSingleNode($"(//span[@class='dynamic-text-list__item-title clamp clamp-1'])[{i}]");
             var topMovie = topValue?.InnerText.Trim();
-            Console.WriteLine(topMovie);
+            topMovie = WebUtility.HtmlDecode(topMovie);
+            Console.WriteLine("Titulo: "+topMovie);
+            var linkNode = htmlDocument.DocumentNode.SelectSingleNode($"(//a[@class='dynamic-text-list__tomatometer-group'])[{i}]");
+            var movieLink = linkNode?.GetAttributeValue("href", "");//aqui solamente se almacena "/m/{nombre_pelicula}", asi que falta completar el link
+            var fullLink = "https://www.rottentomatoes.com" + movieLink;
+            Console.WriteLine("Link de la pelicula: " + fullLink+"\n");
         }
         Console.WriteLine("");
 
         Console.WriteLine("Top series de la semana:\n");
         for (int i = 11; i <= 20; i++)
         {
-            //Iteramos sobre cada nodo que cumple con la condicion de ese value de class
-            //Solamente iteraremos 10 veces debido a que en estos 10 primeros nodos está el top de peliculas
+
             var serieValue = htmlDocument.DocumentNode.SelectSingleNode($"(//span[@class='dynamic-text-list__item-title clamp clamp-1'])[{i}]");
             var topSerie = serieValue?.InnerText.Trim();
-            Console.WriteLine(topSerie);
+            topSerie = WebUtility.HtmlDecode(topSerie);
+            Console.WriteLine("Titulo: "+ topSerie);
+            var linkNode = htmlDocument.DocumentNode.SelectSingleNode($"(//a[@class='dynamic-text-list__tomatometer-group'])[{i}]");
+            var serieLink = linkNode?.GetAttributeValue("href", "");
+            var fullLink = "https://www.rottentomatoes.com" + serieLink;
+            Console.WriteLine("Link de la serie: " + fullLink + "\n");
+
         }
     }
 }
