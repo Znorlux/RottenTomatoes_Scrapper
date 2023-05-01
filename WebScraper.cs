@@ -13,9 +13,9 @@ class WebScraper
 {
     static async Task Main(string[] args)
     {
-        await getMovieInfo();
+        //await getMovieInfo();
         await getSeriesInfo();
-        await getTop10();
+        //await getTop10();
     }
     static async Task getMovieInfo()
     {
@@ -63,7 +63,7 @@ class WebScraper
         //Se desciende sobre el nodo raiz hasta encontrar un nodo el cual tenga un atributo llamado "data-qa" cuyo valor sea "movie-info-synopsis" que es donde se encuentra la sinopsis
         var synopsisNode = htmlDocument.DocumentNode.Descendants()//Puede servir para bajar por todo el DOM y buscar los que cumplan con ciertas condiciones
             .FirstOrDefault(n => n.GetAttributeValue("data-qa", "") == "movie-info-synopsis");
-
+        
         var synopsis = synopsisNode?.InnerText?.Trim();//El Trim solo es borrar los espacios vacios
 
         Console.WriteLine("Sinopsis:\n"+ synopsis);
@@ -130,13 +130,22 @@ class WebScraper
                     if (actorImg != null)
                     {
                         var actorName = actorImg.GetAttributeValue("alt", "");//El valor del atributo alt contiene el nombre del actor
+                        
                         Console.WriteLine(actorName);
+                    }
+                    var actorRolNode = item.SelectSingleNode(".//p[@class='p--small']");
+                    if (actorRolNode != null)
+                    {
+                        var actorRolEspaciado = actorRolNode.InnerText.Trim();
+                        //regex para eliminar espacios innecesarios entre palabras y dejar solo uno
+                        var actorRol = Regex.Replace(actorRolEspaciado, @"\s+", " ");
+                        Console.WriteLine(actorRol + "\n");
                     }
                 }
             }
         }
         Console.WriteLine("");
-        var criticReview = htmlDocument.DocumentNode.SelectNodes("//review-speech-balloon[contains(@data-qa, 'critic-review')]");
+        var criticReview = htmlDocument.DocumentNode.SelectNodes("//review-speech-balloon[@data-qa='critic-review' and @istopcritic= 'true']");
 
         if (criticReview != null)
         {
@@ -145,7 +154,20 @@ class WebScraper
             for (int i = 0; i < 3 && i < criticReview.Count; i++)
             {
                 var reviewQuote = criticReview[i]?.GetAttributeValue("reviewquote", "");
-                Console.WriteLine("- " + reviewQuote.Trim()+"\n");
+                reviewQuote = WebUtility.HtmlDecode(reviewQuote);
+                Console.WriteLine("- " + reviewQuote?.Trim()+"\n");
+            }
+        }
+        //solo cambia el atributo istopcritic a false
+        var audienceReview = htmlDocument.DocumentNode.SelectNodes("//review-speech-balloon[@data-qa='critic-review' and @istopcritic= 'false']");
+        if (audienceReview != null)
+        {
+            Console.WriteLine("Comentarios de la audiencia:");
+            for (int i = 0; i < 3 && i < audienceReview.Count; i++)
+            {
+                var audienceQuote = audienceReview[i]?.GetAttributeValue("reviewquote", "");
+                audienceQuote = WebUtility.HtmlDecode(audienceQuote);
+                Console.WriteLine("- " + audienceQuote?.Trim() + "\n");
             }
         }
     }
@@ -216,6 +238,8 @@ class WebScraper
             string actorName = span.InnerText.Trim();
             Console.WriteLine(actorName);
         }
+
+
         Console.WriteLine("");
 
         var tvNetworkValue = htmlDocument.DocumentNode.SelectSingleNode("//li[contains(., 'TV Network: ')]");
